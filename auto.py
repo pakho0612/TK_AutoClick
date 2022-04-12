@@ -11,6 +11,11 @@ attack_button = './src/attack_button.png';
 attack_confirm_button = './src/attack_confirm_button.png';
 attack_tile_button = './src/attack_tile_button.png';
 attack_tile_confirm_button = './src/attack_tile_confirm_button.png';
+numbertimes_button = './src/number_times.PNG';
+once_button = './src/once.PNG';
+twice_button = './src/twice.PNG';
+threetimes_button = './src/three_times.PNG';
+numbertimes_button_list = {1:once_button, 2:twice_button, 3:threetimes_button};
 
 troop1 = './src/troop1.png';
 troop2 = './src/troop2.png';
@@ -18,6 +23,7 @@ troop2 = './src/troop2.png';
 target_location = (940,1061);
 attack_time_offset = 120; #seconds
 attack_time = ['2022','04','11','09','00','00'];
+number_of_times = 3; # -1=inf 
 #tiles
 target_location2 = (1475,455);
 attack_time_offset2 = 0; #seconds
@@ -25,7 +31,7 @@ attack_time2 = ['2022','04','11','07','05','50'];
 
 #################### Internal constant
 process_name = '三國志';
-default_window_pos = (0,0);
+default_window_pos = (10,10);
 default_window_size = (1104,651);
 
 ####################
@@ -47,7 +53,7 @@ def locate(picture, conf = 0.9):
     #pyautogui.locateOnScreen('someButton.png', region=(0,0, 300, 400))
     # return None
     try:
-        map_button_location = pyautogui.locateOnScreen(picture, confidence = conf);
+        map_button_location = pyautogui.locateOnScreen(picture, confidence = conf, grayscale=True, region=(default_window_pos[0],default_window_pos[1], default_window_size[0], default_window_size[1]));
         print("map bbox ", map_button_location);
         return map_button_location;
     except :
@@ -58,7 +64,7 @@ def locateAll(picture, conf = 0.85):
     #pyautogui.locateOnScreen('someButton.png', region=(0,0, 300, 400))
     # return None
     try:
-        map_button_location = pyautogui.locateAllOnScreen(picture, confidence = conf);
+        map_button_location = pyautogui.locateAllOnScreen(picture, confidence = conf, region=(default_window_pos[0],default_window_pos[1], default_window_size[0], default_window_size[1]));
         print("map bbox ", map_button_location);
         return map_button_location;
     except :
@@ -139,19 +145,29 @@ def Navigate_map(location):
     ClickOnButton(map_goto_button);
     print("Going to target location");
 
+def SetNumberTimes(number_of_times):
+    if number_of_times == -1:
+        print('nonstop attacking')
+        return ;
+    else:
+        ClickOnButton(numbertimes_button);
+        ClickOnButton(numbertimes_button_list[number_of_times]);
+        print('attacking for ', number_of_times, ' times');
+        return;
+
 #click target
 #find and click attack
-def OrderToAttack(attack, troop, confirm):
+def OrderToAttack(attack, troop, confirm, number_of_times):
     ClickOnButton(attack);
     ClickOnButton(troop);
+    SetNumberTimes(number_of_times)
     ClickOnButton(confirm);
 
 def main():
     Init();
-    
-    #check_time(attack_time, attack_time_offset);
+    check_time(attack_time, attack_time_offset);
     Navigate_map(target_location);
-    OrderToAttack(attack_button, troop1, attack_confirm_button);
+    OrderToAttack(attack_button, troop1, attack_confirm_button, number_of_times);
 
     ## for attack a specific tile
     #check_time(attack_time2, attack_time_offset2);
