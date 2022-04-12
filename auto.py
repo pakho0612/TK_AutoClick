@@ -26,7 +26,7 @@ attack_time2 = ['2022','04','11','07','05','50'];
 #################### Internal constant
 process_name = '三國志';
 default_window_pos = (0,0);
-default_window_size = (1303,763);
+default_window_size = (1104,651);
 
 ####################
 def WindowResizing(default_window_pos, default_window_size):
@@ -43,7 +43,7 @@ def Init():
     WindowResizing(default_window_pos, default_window_size);
 
 #################### User Functions    
-def locate(picture, conf = 0.9):
+def locate(picture, conf = 0.85):
     #pyautogui.locateOnScreen('someButton.png', region=(0,0, 300, 400))
     # return None
     try:
@@ -149,7 +149,7 @@ def OrderToAttack(attack, troop, confirm):
 def main():
     Init();
     
-    check_time(attack_time, attack_time_offset);
+    #check_time(attack_time, attack_time_offset);
     Navigate_map(target_location);
     OrderToAttack(attack_button, troop1, attack_confirm_button);
 
