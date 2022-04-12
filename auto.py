@@ -20,7 +20,7 @@ numbertimes_button_list = {1:once_button, 2:twice_button, 3:threetimes_button};
 troop1 = './src/troop1.png';
 troop2 = './src/troop2.png';
 #city
-target_location = (940,1061);
+target_location = (1465,454);
 attack_time_offset = 120; #seconds
 attack_time = ['2022','04','11','09','00','00'];
 number_of_times = 3; # -1=inf 
@@ -33,6 +33,7 @@ attack_time2 = ['2022','04','11','07','05','50'];
 process_name = '三國志';
 default_window_pos = (10,10);
 default_window_size = (1104,651);
+debug = 1;
 
 ####################
 def WindowResizing(default_window_pos, default_window_size):
@@ -48,27 +49,31 @@ def Init():
     # Load constants from JSON
     WindowResizing(default_window_pos, default_window_size);
 
+def debug_message(*args, **kwargs):
+    if debug == 1:
+        print("    " + " ".join(map(str,args)), **kwargs);
+
 #################### User Functions    
 def locate(picture, conf = 0.9):
     #pyautogui.locateOnScreen('someButton.png', region=(0,0, 300, 400))
     # return None
     try:
         map_button_location = pyautogui.locateOnScreen(picture, confidence = conf, grayscale=True, region=(default_window_pos[0],default_window_pos[1], default_window_size[0], default_window_size[1]));
-        print("map bbox ", map_button_location);
+        debug_message("map bbox ", map_button_location);
         return map_button_location;
     except :
-        print("Unexpected error");
+        debug_message("Unexpected error");
         return False;
 
-def locateAll(picture, conf = 0.85):
+def locateAll(picture, conf = 0.87):
     #pyautogui.locateOnScreen('someButton.png', region=(0,0, 300, 400))
     # return None
     try:
         map_button_location = pyautogui.locateAllOnScreen(picture, confidence = conf, region=(default_window_pos[0],default_window_pos[1], default_window_size[0], default_window_size[1]));
-        print("map bbox ", map_button_location);
+        debug_message("map bbox ", map_button_location);
         return map_button_location;
     except :
-        print("Unexpected error");
+        debug_message("Unexpected error");
         return False;
 
 def ClickOnButton(image):
@@ -76,14 +81,14 @@ def ClickOnButton(image):
         button = locate(image);
         if button is not None:
             break;
-    print('button found at ', button);
+    debug_message('button found at ', button);
     click(button);
         
 def click(button_bbox):
     button_x, button_y = pyautogui.center(button_bbox);
-    print("button click on ",button_x, button_y)
+    debug_message("button click on ",button_x, button_y)
     pyautogui.click(button_x, button_y)
-    print("button clicked")
+    debug_message("button clicked")
 
 def clean_textbox():
     pyautogui.press('delete');
@@ -97,7 +102,6 @@ def clean_textbox():
 
 def write_number(number):
     pyautogui.write(str(number));
-    
 
 #攻城
 #1時間,2地點,3出擊,4隊伍,4確定
@@ -120,7 +124,7 @@ def check_time(attack_time, attack_time_offset):
                 print(now);
                 return True;
     else:
-        print('Invalid timestamp');
+        debug_message('Invalid timestamp');
         return False;
 #2
 def Navigate_map(location):
@@ -162,7 +166,17 @@ def OrderToAttack(attack, troop, confirm, number_of_times):
     ClickOnButton(troop);
     SetNumberTimes(number_of_times)
     ClickOnButton(confirm);
+    print('Attacking... 1/1');
 
+def MultipleAttack(target_location, attack, troops, confirm, number_of_times):
+    Navigate_map(target_location);
+    count = 0;
+    total = len(troops);
+    for troop in troops:
+        OrderToAttack(attack, troop, confirm, number_of_times);
+        count = count + 1;
+        print('Attacking... ', count, '/', total);
+        
 def main():
     Init();
     check_time(attack_time, attack_time_offset);
