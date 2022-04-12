@@ -1,5 +1,6 @@
 import pyautogui
 import datetime
+import pygetwindow
 #windows click
 # GUI to set troops
 
@@ -13,13 +14,35 @@ attack_tile_confirm_button = './src/attack_tile_confirm_button.png';
 
 troop1 = './src/troop1.png';
 troop2 = './src/troop2.png';
-target_location = (1351,897);
+#city
+target_location = (940,1061);
 attack_time_offset = 120; #seconds
+attack_time = ['2022','04','11','09','00','00'];
+#tiles
 target_location2 = (1475,455);
 attack_time_offset2 = 0; #seconds
-attack_time = ['2022','04','11','09','00','00'];
 attack_time2 = ['2022','04','11','07','05','50'];
-    
+
+#################### Internal constant
+process_name = '三國志';
+default_window_pos = (0,0);
+default_window_size = (1303,763);
+
+####################
+def WindowResizing(default_window_pos, default_window_size):
+    # for later: may rescale cv image instead
+    # 
+    win_handle = pygetwindow.getWindowsWithTitle('三國志')[0];
+    win_handle.activate();#try both to get the window active
+    win_handle.restore(); #
+    win_handle.moveTo(default_window_pos[0], default_window_pos[1]);
+    win_handle.resizeTo(default_window_size[0], default_window_size[1]);
+
+def Init():
+    # Load constants from JSON
+    WindowResizing(default_window_pos, default_window_size);
+
+#################### User Function    
 def locate(picture, conf = 0.9):
     #pyautogui.locateOnScreen('someButton.png', region=(0,0, 300, 400))
     # return None
@@ -123,9 +146,13 @@ def OrderToAttack(attack, troop, confirm):
     ClickOnButton(confirm);
 
 def main():
+    Init();
+    
     check_time(attack_time, attack_time_offset);
     Navigate_map(target_location);
     OrderToAttack(attack_button, troop1, attack_confirm_button);
+
+    ## for attack a specific tile
     #check_time(attack_time2, attack_time_offset2);
     #Navigate_map(target_location2);
     #OrderToAttack(attack_tile_button, troop2, attack_tile_confirm_button);
