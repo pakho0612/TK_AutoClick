@@ -43,7 +43,7 @@ def Init():
     WindowResizing(default_window_pos, default_window_size);
 
 #################### User Functions    
-def locate(picture, conf = 0.85):
+def locate(picture, conf = 0.9):
     #pyautogui.locateOnScreen('someButton.png', region=(0,0, 300, 400))
     # return None
     try:
