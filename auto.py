@@ -42,7 +42,7 @@ def Init():
     # Load constants from JSON
     WindowResizing(default_window_pos, default_window_size);
 
-#################### User Function    
+#################### User Functions    
 def locate(picture, conf = 0.9):
     #pyautogui.locateOnScreen('someButton.png', region=(0,0, 300, 400))
     # return None
@@ -70,6 +70,7 @@ def ClickOnButton(image):
         button = locate(image);
         if button is not None:
             break;
+    print('button found at ', button);
     click(button);
         
 def click(button_bbox):
