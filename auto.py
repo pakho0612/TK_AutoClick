@@ -12,8 +12,9 @@ c_default_window_pos = (10,10);
 c_default_window_size = (1104,651);
 c_timeout = 5;#seconds
 c_forceattack_timeout = 2;
+c_verify_timeout = 2;
 c_delay = 0.25;#seconds
-debug = 0;
+debug = 1;
 
 c_mode_city = 'attack_city';
 c_mode_tile = 'attack_tile';
@@ -24,6 +25,7 @@ c_time = 'time';
 c_attackdelay = 'delay';
 c_target = 'target';
 c_repeat = 'repeat';
+c_return_home = 'return';
 
 img_location = './src/';
 
@@ -35,6 +37,8 @@ attack_city_button = img_location + 'attack_button.png';
 attack_city_confirm_button = img_location + 'attack_confirm_button.png';
 attack_tile_button = img_location + 'attack_tile_button.png';
 attack_tile_confirm_button = img_location + 'attack_tile_confirm_button.png';
+return_home_button = img_location + 'return_home_button.PNG';
+not_return_home_button = img_location + 'not_return_home_button.PNG';
 force_attack_button = img_location + 'force_attack_button.PNG';
 numbertimes_button = img_location + 'number_times.PNG';
 once_button = img_location + 'once.PNG';
@@ -69,13 +73,14 @@ def Init():
 def InitTimer():
     print('Started Timeout timer');
     return time.time();
-
+    
 def DelayAndTimeOut(start_time):
     # Reduce CPU usage while polling for locate functions
     if time.time() > (start_time + c_timeout):
-        raise TimeOutError({'message':'TimedOut'});
-        return False;
+        debug_message(time.time(),' vs ', start_time + c_timeout);
+        return True; ## timed out
     time.sleep(c_delay);
+    return False;
 
 #################### User Functions    
 def locate(picture, conf = 0.9):
@@ -102,17 +107,25 @@ def locateCoordinateBox(picture, conf = 0.87):
     except :
         debug_message("Unexpected error in locateCoordinateBox function");
         return False;
-
-def ClickOnButton(image):
-    # Finding an important button to press
+        
+def Button_exists(button_image):
     start_time = InitTimer();
-    while True:
-        button = locate(image);
-        if button is not None:
-            break;
-        DelayAndTimeOut(start_time);
-    debug_message('button found at ', button);
-    click(button);
+    while DelayAndTimeOut(start_time) is False:
+        button_bbox = locate(button_image);
+        if button_bbox is not None:
+            return button_bbox;
+    debug_message('button not exists');
+    return False; ## button not found within timeout
+    
+def ClickOnButton(button_image):
+    # Finding the button to press
+    button_bbox = Button_exists(button_image);
+    if button_bbox is False:
+        return False; ## button not found within timeout
+    button_x, button_y = pyautogui.center(button_bbox);
+    debug_message('button found at ', (button_x, button_y));
+    pyautogui.click(button_x, button_y)
+    return True;
         
 def click(button_bbox):
     button_x, button_y = pyautogui.center(button_bbox);
@@ -152,65 +165,89 @@ def check_time(attack_time, attack_time_offset):
             time.sleep(c_delay); # Polling bad, calculate time diff and sleep until then
     else:
         raise InvalidValueError({'message':'time entry is missing'});
-        return False;
         
 #2
 def Navigate_map(location):
     #open map
-    print('Finding Map button');
-    ClickOnButton(map_button);
+    print('Finding map button');
+    if ClickOnButton(map_button) is False:
+        raise TimeOutError({'message':'Finding map button Error: TimedOut'});
     
     #Enter coordinate
     print('Locating coordinate buttons');
     start_time = InitTimer();
     while True:
         coordinate_list = list(locateCoordinateBox(map_coordinate_box));
-        if len(coordinate_list) ==2:
-            print(coordinate_list);
-            print(len(coordinate_list));
+        if len(coordinate_list) ==2: ## x and y coordinate box found
             break;
-        DelayAndTimeOut(start_time);
-    print("Entering Coordinate")
+        if DelayAndTimeOut(start_time) is True:
+            raise TimeOutError({'message':'Locating coordinate buttons Error: TimedOut'});
+            
+    print("Entering Coordinate", (location[0],location[1]));
     for i in range(2):
         click(coordinate_list[i]);
         clean_textbox();
         pyautogui.write(str(location[i]));
         
     #Confirm goto target
-    print("Finding Goto button");
-    ClickOnButton(map_goto_button);
+    print("Finding goto button");
+    if ClickOnButton(map_goto_button) is False:
+        raise TimeOutError({'message':'Finding goto Error: TimedOut'});
 
 def SetNumberTimes(number_of_times):
     if number_of_times == -1:
         print('Selected nonstop attacking')
-        return ;
     else:
-        ClickOnButton(numbertimes_button);
-        ClickOnButton(numbertimes_button_list[number_of_times]);
+        if ClickOnButton(numbertimes_button) is False:
+            raise TimeOutError({'message':'Finding numbertimes_button Error: TimedOut'});
+        if ClickOnButton(numbertimes_button_list[number_of_times]) is False:
+            raise TimeOutError({'message':'Finding number_of_times Error: TimedOut'});
         print('Selected attacking for ', number_of_times, ' times');
-        return;
+        
+def AttackReturnHome(go_home_after_attack):
+    if go_home_after_attack:
+        if Button_exists(not_return_home_button): # not return home is currently selected, else its already set
+            ClickOnButton(not_return_home_button); #checking the return home button 
+        print('Returning home after attack is selected');
+    else:
+        if Button_exists(return_home_button): # return home is currently selected, else its already set
+            ClickOnButton(return_home_button);# Unchecking the return home button
+        print('Not returning home after attack is selected');
 
 #click target
 #find and click attack
 def OrderToAttackTile(troop):
     print('Finding attack tile button...');
-    ClickOnButton(attack_tile_button);
+    if ClickOnButton(attack_tile_button) is False:
+        raise TimeOutError({'message':'Finding attack_tile_button Error: TimedOut'});
+        
     print('Finding troop...');
-    ClickOnButton(troop);
+    if ClickOnButton(troop) is False:
+        raise TimeOutError({'message':'Finding troop Error: TimedOut'});
+        
     print('Finding confirm button...');
-    ClickOnButton(attack_tile_confirm_button);
+    if ClickOnButton(attack_tile_confirm_button) is False:
+        raise TimeOutError({'message':'Finding attack_tile_confirm_button Error: TimedOut'});
+        
     CheckForceAttack();
     print('Attacking Tile');
     
 def OrderToAttackCity(troop, number_of_times = -1):
     print('Finding attack tile button...');
-    ClickOnButton(attack_city_button);
+    if ClickOnButton(attack_city_button) is False:
+        raise TimeOutError({'message':'Finding attack_city_button Error: TimedOut'});
+        
     print('Finding troop...');
-    ClickOnButton(troop);
+    if ClickOnButton(troop) is False:
+        raise TimeOutError({'message':'Finding troop Error: TimedOut'});
+        
     print('Setting number of times...');
     SetNumberTimes(number_of_times)
+    
     print('Finding attack tile button...');
-    ClickOnButton(attack_city_confirm_button);
+    if ClickOnButton(attack_city_confirm_button) is False:
+        raise TimeOutError({'message':'Finding attack_city_confirm_button Error: TimedOut'});
+        
     print('Attacking City');
     
 def CheckForceAttack():
@@ -218,16 +255,9 @@ def CheckForceAttack():
     # appear only at some ocations
     # skipped after timeout
     print('Finding Force attack button');
-    start_time = time.time();
-    while True:
-        button = locate(force_attack_button);
-        if button is not None:
-            break;
-        if time.time() > (start_time + c_forceattack_timeout):
-            print('No force attack button found');
-            return;
-        time.sleep(c_delay);
-    click(button);
+    if ClickOnButton(force_attack_button) is False:
+        raise TimeOutError({'message':'CheckForceAttack Error: TimedOut'});
+    return True;
 
 def task_handler(task):
     # logic of attacking or moving based of task
@@ -243,7 +273,6 @@ def task_handler(task):
         print('moving troop')
     else:
         raise InvalidValueError({'message':'InvalidValueError: Undefined Mode'});
-        return False;
 
 def tasks_management(task_list):
     try:
@@ -264,26 +293,31 @@ def tasks_management(task_list):
             
 def main():
     Init();
-    
     ##################
     troop1 = './src/troop1.png';
     troop2 = './src/troop2.png';
+    troop3 = './src/troop3.png';
+    troop4 = './src/troop4.png';
     #city
     target_location = (1304,667);
     attack_time_delay = 120; #seconds
     attack_time = ['2022','04','11','09','00','00'];
     number_of_times = 3; # -1=inf
+    return_home = False;
     #tiles
     target_location2 = (1479,472);
     attack_time_delay2 = 0; #seconds
     attack_time2 = ['2022','04','11','07','05','50'];
+    return_home2 = False;
     ###################
     # currently need to manually queue orders if the units currently on same tile outside home
     task_list = [];
-    task1 = {c_mode:'attack_tile', c_time: attack_time2, c_attackdelay:attack_time_delay2, c_troop:troop1, c_target:target_location2, c_repeat:number_of_times};
-    task2 = {c_mode:'attack_city', c_time: attack_time, c_attackdelay:attack_time_delay, c_troop:troop2, c_target:target_location, c_repeat:number_of_times};
+    task1 = {c_mode:'attack_tile', c_time: ['2022','04','13','10','37','00'], c_attackdelay:10, c_troop:troop4, c_target:(1479,450), c_repeat:-1, c_return_home: True};
+    task2 = {c_mode:'attack_tile', c_time: ['2022','04','13','10','40','10'], c_attackdelay:120, c_troop:troop4, c_target:(1479,449), c_repeat:-1, c_return_home: True};
+    #task3 = {c_mode:'attack_city', c_time: ['2022','04','13','09','00','00'], c_attackdelay:120, c_troop:troop3, c_target:(1304,667), c_repeat:-1, c_return_home: True};
     task_list.append(task1);
     task_list.append(task2);
+    #task_list.append(task3);
     tasks_management(task_list);
     
 
