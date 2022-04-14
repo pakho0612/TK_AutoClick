@@ -37,6 +37,7 @@ c_json_task = 'Tasks';
 map_button = img_location + 'map_button.png';
 map_coordinate_box = img_location + 'map_coordinate_box.png';
 map_goto_button = img_location + 'map_goto_button.png';
+
 attack_city_button = img_location + 'attack_button.png';
 attack_city_confirm_button = img_location + 'attack_confirm_button.png';
 attack_tile_button = img_location + 'attack_tile_button.png';
@@ -44,11 +45,15 @@ attack_tile_confirm_button = img_location + 'attack_tile_confirm_button.png';
 return_home_button = img_location + 'return_home_button.PNG';
 not_return_home_button = img_location + 'not_return_home_button.PNG';
 force_attack_button = img_location + 'force_attack_button.PNG';
+
 numbertimes_button = img_location + 'number_times.PNG';
 once_button = img_location + 'once.PNG';
 twice_button = img_location + 'twice.PNG';
 threetimes_button = img_location + 'three_times.PNG';
 numbertimes_button_list = {1:once_button, 2:twice_button, 3:threetimes_button};
+
+move_button = img_location + 'move_button.PNG';
+move_confirm_button = img_location + 'move_confirm_button.PNG';
 
 #################### Debug/Error Functions
 class TimeOutError(Exception):
@@ -241,6 +246,21 @@ def OrderToAttackCity(troop, return_home, number_of_times = -1):
         
     print('Attacking City');
     
+def OrderToMove(troop):
+    print('Find move button...');
+    if ClickOnButton(move_button) is False:
+        raise TimeOutError({'message':'Finding move_button Error: TimedOut'});
+        
+    print('Finding troop...');
+    if ClickOnButton(troop) is False:
+        raise TimeOutError({'message':'Finding troop Error: TimedOut'});
+    
+    print('Find confirm button...');
+    if ClickOnButton(move_confirm_button) is False:
+        raise TimeOutError({'message':'Finding move_confirm_button Error: TimedOut'});
+        
+    print('Moving Troop');
+    
 def CheckForceAttack():
     # 兵力差距過大 堅持出征
     # appear only at some ocations
@@ -272,7 +292,8 @@ class Task:
             Navigate_map(self.target);
             OrderToAttackTile(self.troop, self.return_home);
         elif self.mode == c_mode_move:
-            print('moving troop')
+            Navigate_map(self.target);
+            OrderToMove(self.troop);
         else:
             raise InvalidValueError({'message':'InvalidValueError: Undefined Mode'});
             
