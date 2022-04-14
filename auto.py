@@ -2,6 +2,7 @@ import pyautogui
 import datetime
 import pygetwindow
 import time
+import json
 #windows click
 # GUI to set troops
 
@@ -20,20 +21,23 @@ c_mode_city = 'attack_city';
 c_mode_tile = 'attack_tile';
 c_mode_move = 'move';
 c_mode = 'mode';
-c_troop = 'troop';
 c_time = 'time';
-c_attackdelay = 'delay';
+c_troop = 'troop';
 c_target = 'target';
+c_attackdelay = 'delay';
 c_repeat = 'repeat';
-c_return_home = 'return';
+c_return_home = 'return_home';
 
 img_location = './src/';
 usrdata_location = './usr/';
+tasks_file = 'tasks.json';
+c_json_task = 'Tasks';
 
 ##################### Source 
 map_button = img_location + 'map_button.png';
 map_coordinate_box = img_location + 'map_coordinate_box.png';
 map_goto_button = img_location + 'map_goto_button.png';
+
 attack_city_button = img_location + 'attack_button.png';
 attack_city_confirm_button = img_location + 'attack_confirm_button.png';
 attack_tile_button = img_location + 'attack_tile_button.png';
@@ -41,11 +45,15 @@ attack_tile_confirm_button = img_location + 'attack_tile_confirm_button.png';
 return_home_button = img_location + 'return_home_button.PNG';
 not_return_home_button = img_location + 'not_return_home_button.PNG';
 force_attack_button = img_location + 'force_attack_button.PNG';
+
 numbertimes_button = img_location + 'number_times.PNG';
 once_button = img_location + 'once.PNG';
 twice_button = img_location + 'twice.PNG';
 threetimes_button = img_location + 'three_times.PNG';
 numbertimes_button_list = {1:once_button, 2:twice_button, 3:threetimes_button};
+
+move_button = img_location + 'move_button.PNG';
+move_confirm_button = img_location + 'move_confirm_button.PNG';
 
 #################### Debug/Error Functions
 class TimeOutError(Exception):
@@ -145,27 +153,6 @@ def clean_textbox():
 
 def write_number(number):
     pyautogui.write(str(number));
-    
-    
-def check_time(attack_time, attack_time_offset):
-#check current time and scheduled time
-    if len(attack_time) == 6:
-        time_num = [];
-        for i in attack_time:
-            time_num.append(int(i));
-        print('waiting for time');
-        start_time = datetime.datetime(time_num[0],time_num[1],time_num[2],time_num[3],time_num[4],time_num[5]);
-        start_time = start_time + datetime.timedelta(seconds = attack_time_offset);
-        print(start_time);
-        while True:
-            now = datetime.datetime.now();
-            if start_time < now:
-                print('Start Script');
-                print(now);
-                return True;
-            time.sleep(c_delay); # Polling bad, calculate time diff and sleep until then
-    else:
-        raise InvalidValueError({'message':'time entry is missing'});
         
 #2
 def Navigate_map(location):
@@ -259,6 +246,21 @@ def OrderToAttackCity(troop, return_home, number_of_times = -1):
         
     print('Attacking City');
     
+def OrderToMove(troop):
+    print('Find move button...');
+    if ClickOnButton(move_button) is False:
+        raise TimeOutError({'message':'Finding move_button Error: TimedOut'});
+        
+    print('Finding troop...');
+    if ClickOnButton(troop) is False:
+        raise TimeOutError({'message':'Finding troop Error: TimedOut'});
+    
+    print('Find confirm button...');
+    if ClickOnButton(move_confirm_button) is False:
+        raise TimeOutError({'message':'Finding move_confirm_button Error: TimedOut'});
+        
+    print('Moving Troop');
+    
 def CheckForceAttack():
     # 兵力差距過大 堅持出征
     # appear only at some ocations
@@ -268,67 +270,87 @@ def CheckForceAttack():
         raise TimeOutError({'message':'CheckForceAttack Error: TimedOut'});
     return True;
 
-def task_handler(task):
-    # logic of attacking or moving based of task
-    # check mode then does sth
-    # task : [mode, time, delay, target, troop]
-    if task[c_mode] == c_mode_city:
-        Navigate_map(task[c_target]);
-        OrderToAttackCity(task[c_troop], task[c_return_home], task[c_repeat]);
-    elif task[c_mode] == c_mode_tile:
-        Navigate_map(task[c_target]);
-        OrderToAttackTile(task[c_troop], task[c_return_home]);
-    elif task[c_mode] == c_mode_move:
-        print('moving troop')
-    else:
-        raise InvalidValueError({'message':'InvalidValueError: Undefined Mode'});
-
-def tasks_management(task_list):
-    try:
-        while task_list:
-            task = task_list.pop(0);
-            print('Handling task. Mode:', task[c_mode], ' Time:',task[c_time]);
-            # when time is due for the first task
-            # execute it 
-            if check_time(task[c_time], task[c_attackdelay]) is True:
-                task_handler(task);
-                print('Task ', task[c_mode], task[c_time], ' is finished.');
-    except InvalidValueError as e:
-        details = e.args[0];
-        print(details['message']);
-    except TimeOutError as e:
-        details = e.args[0];
-        print(details['message']);
+####################### Task Class
+class Task:
+    def __init__(self, mode, time, troop, target, delay, repeat, return_home):
+        self.mode = mode;
+        self.time = time;
+        self.troop = troop;
+        self.target = target;
+        self.delay = delay;
+        self.repeat = repeat;
+        self.return_home = return_home;
+        
+    def task_handler(self):
+        # logic of attacking or moving based of task
+        # check mode then does sth
+        # task : [mode, time, delay, target, troop]
+        if self.mode == c_mode_city:
+            Navigate_map(self.target);
+            OrderToAttackCity(self.troop, self.return_home, self.repeat);
+        elif self.mode == c_mode_tile:
+            Navigate_map(self.target);
+            OrderToAttackTile(self.troop, self.return_home);
+        elif self.mode == c_mode_move:
+            Navigate_map(self.target);
+            OrderToMove(self.troop);
+        else:
+            raise InvalidValueError({'message':'InvalidValueError: Undefined Mode'});
             
+    def check_time(self):
+        #check current time and scheduled time
+        start_time = self.time + datetime.timedelta(seconds = self.delay);
+        print('waiting for time : ', start_time);
+        while True:
+            now = datetime.datetime.now();
+            if start_time < now:
+                print('Start Script : ', now);
+                return True;
+            time.sleep(c_delay); # Polling bad, calculate time diff and sleep until then
+
+#################
+        
+class AllTasks:
+    def __init__(self):
+        self.task_list = [];
+        
+    def AddTask(self, newtask):
+        self.task_list.append(newtask);
+    
+    def tasks_management(self):
+        try:
+            while self.task_list:
+                task = self.task_list.pop(0);
+                print('Handling task. Mode:', task.mode, ' Time:',task.time);
+                # when time is due for the first task
+                # execute it 
+                if task.check_time() is True:
+                    task.task_handler();
+                    print('Task ', task.mode, task.time, ' is finished.');
+        except InvalidValueError as e:
+            details = e.args[0];
+            print(details['message']);
+        except TimeOutError as e:
+            details = e.args[0];
+            print(details['message']);
+            
+def SetTasks(file):
+    task_list = AllTasks();
+    print('Loading Tasks');
+    with open(file,'r') as file_object:  
+        data = json.load(file_object);
+    for task in data[c_json_task]:
+        debug_message('Adding new task', task);
+        task_time = [int(i) for i in task[c_time]];
+        task_datetime = datetime.datetime(task_time[0], task_time[1], task_time[2], task_time[3], task_time[4], task_time[5]);
+        newtask = Task(task[c_mode], task_datetime, task[c_troop], task[c_target], task[c_attackdelay], task[c_repeat], task[c_return_home]);
+        task_list.AddTask(newtask);
+    return task_list;
+
 def main():
     Init();
-    ##################
-    troop1 = usrdata_location + 'troop1.png';
-    troop2 = usrdata_location + 'troop2.png';
-    troop3 = usrdata_location + 'troop3.png';
-    troop4 = usrdata_location + 'troop4.png';
-    troop5 = usrdata_location + 'troop5.png';
-    #city
-    target_location = (1304,667);
-    attack_time_delay = 120; #seconds
-    attack_time = ['2022','04','11','09','00','00'];
-    number_of_times = 3; # -1=inf
-    return_home = False;
-    #tiles
-    target_location2 = (1479,472);
-    attack_time_delay2 = 0; #seconds
-    attack_time2 = ['2022','04','11','07','05','50'];
-    return_home2 = False;
-    ###################
-    # currently need to manually queue orders if the units currently on same tile outside home
-    task_list = [];
-    task1 = {c_mode:'attack_tile', c_time: ['2022','04','13','10','37','00'], c_attackdelay:10, c_troop:troop5, c_target:(1480,452), c_repeat:-1, c_return_home: False};
-    #task2 = {c_mode:'attack_tile', c_time: ['2022','04','13','10','40','10'], c_attackdelay:120, c_troop:troop4, c_target:(1479,449), c_repeat:-1, c_return_home: True};
-    #task3 = {c_mode:'attack_city', c_time: ['2022','04','13','09','00','00'], c_attackdelay:120, c_troop:troop3, c_target:(1304,667), c_repeat:-1, c_return_home: True};
-    task_list.append(task1);
-    #task_list.append(task2);
-    #task_list.append(task3);
-    tasks_management(task_list);
+    task_list = SetTasks(usrdata_location + tasks_file);
+    task_list.tasks_management();
     
 
 main();

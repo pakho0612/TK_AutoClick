@@ -1,0 +1,22 @@
+{
+    "Tasks":[
+        {
+            "mode": "move", 
+            "time": ["2022","04","14","01","42","00"], 
+            "troop": "./usr/troop5.PNG", 
+            "target": [1410,657],
+            "delay": 10, 
+            "repeat": -1, 
+            "return_home": false
+        },
+        {
+            "mode": "attack_tile", 
+            "time": ["2022","04","14","01","42","00"], 
+            "troop": "./usr/troop1.PNG", 
+            "target": [1503,482],
+            "delay": 30, 
+            "repeat": -1, 
+            "return_home": true
+        }
+    ]
+}
