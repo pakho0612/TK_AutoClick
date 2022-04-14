@@ -28,6 +28,7 @@ c_repeat = 'repeat';
 c_return_home = 'return';
 
 img_location = './src/';
+usrdata_location = './usr/';
 
 ##################### Source 
 map_button = img_location + 'map_button.png';
@@ -207,24 +208,29 @@ def SetNumberTimes(number_of_times):
 def AttackReturnHome(go_home_after_attack):
     if go_home_after_attack:
         if Button_exists(not_return_home_button): # not return home is currently selected, else its already set
-            ClickOnButton(not_return_home_button); #checking the return home button 
+            if ClickOnButton(not_return_home_button) is False: #checking the return home button 
+                raise TimeOutError({'message':'Finding not_return_home_button Error: TimedOut'});
         print('Returning home after attack is selected');
     else:
         if Button_exists(return_home_button): # return home is currently selected, else its already set
-            ClickOnButton(return_home_button);# Unchecking the return home button
+            if ClickOnButton(return_home_button) is False:# Unchecking the return home button
+                raise TimeOutError({'message':'Finding return_home_button Error: TimedOut'});
         print('Not returning home after attack is selected');
 
 #click target
 #find and click attack
-def OrderToAttackTile(troop):
+def OrderToAttackTile(troop, return_home):
     print('Finding attack tile button...');
     if ClickOnButton(attack_tile_button) is False:
         raise TimeOutError({'message':'Finding attack_tile_button Error: TimedOut'});
         
-    print('Finding troop...');
+    print('Selecting troop...');
     if ClickOnButton(troop) is False:
         raise TimeOutError({'message':'Finding troop Error: TimedOut'});
         
+    print('Selecting return home option');
+    AttackReturnHome(return_home);
+    
     print('Finding confirm button...');
     if ClickOnButton(attack_tile_confirm_button) is False:
         raise TimeOutError({'message':'Finding attack_tile_confirm_button Error: TimedOut'});
@@ -232,8 +238,8 @@ def OrderToAttackTile(troop):
     CheckForceAttack();
     print('Attacking Tile');
     
-def OrderToAttackCity(troop, number_of_times = -1):
-    print('Finding attack tile button...');
+def OrderToAttackCity(troop, return_home, number_of_times = -1):
+    print('Finding attack city button...');
     if ClickOnButton(attack_city_button) is False:
         raise TimeOutError({'message':'Finding attack_city_button Error: TimedOut'});
         
@@ -242,9 +248,12 @@ def OrderToAttackCity(troop, number_of_times = -1):
         raise TimeOutError({'message':'Finding troop Error: TimedOut'});
         
     print('Setting number of times...');
-    SetNumberTimes(number_of_times)
+    SetNumberTimes(number_of_times);    
     
-    print('Finding attack tile button...');
+    print('Selecting return home option');
+    AttackReturnHome(return_home);
+    
+    print('Finding confirm button...');
     if ClickOnButton(attack_city_confirm_button) is False:
         raise TimeOutError({'message':'Finding attack_city_confirm_button Error: TimedOut'});
         
@@ -265,10 +274,10 @@ def task_handler(task):
     # task : [mode, time, delay, target, troop]
     if task[c_mode] == c_mode_city:
         Navigate_map(task[c_target]);
-        OrderToAttackCity(task[c_troop], task[c_repeat]);
+        OrderToAttackCity(task[c_troop], task[c_return_home], task[c_repeat]);
     elif task[c_mode] == c_mode_tile:
         Navigate_map(task[c_target]);
-        OrderToAttackTile(task[c_troop]);
+        OrderToAttackTile(task[c_troop], task[c_return_home]);
     elif task[c_mode] == c_mode_move:
         print('moving troop')
     else:
@@ -294,10 +303,11 @@ def tasks_management(task_list):
 def main():
     Init();
     ##################
-    troop1 = './src/troop1.png';
-    troop2 = './src/troop2.png';
-    troop3 = './src/troop3.png';
-    troop4 = './src/troop4.png';
+    troop1 = usrdata_location + 'troop1.png';
+    troop2 = usrdata_location + 'troop2.png';
+    troop3 = usrdata_location + 'troop3.png';
+    troop4 = usrdata_location + 'troop4.png';
+    troop5 = usrdata_location + 'troop5.png';
     #city
     target_location = (1304,667);
     attack_time_delay = 120; #seconds
@@ -312,11 +322,11 @@ def main():
     ###################
     # currently need to manually queue orders if the units currently on same tile outside home
     task_list = [];
-    task1 = {c_mode:'attack_tile', c_time: ['2022','04','13','10','37','00'], c_attackdelay:10, c_troop:troop4, c_target:(1479,450), c_repeat:-1, c_return_home: True};
-    task2 = {c_mode:'attack_tile', c_time: ['2022','04','13','10','40','10'], c_attackdelay:120, c_troop:troop4, c_target:(1479,449), c_repeat:-1, c_return_home: True};
+    task1 = {c_mode:'attack_tile', c_time: ['2022','04','13','10','37','00'], c_attackdelay:10, c_troop:troop5, c_target:(1480,452), c_repeat:-1, c_return_home: False};
+    #task2 = {c_mode:'attack_tile', c_time: ['2022','04','13','10','40','10'], c_attackdelay:120, c_troop:troop4, c_target:(1479,449), c_repeat:-1, c_return_home: True};
     #task3 = {c_mode:'attack_city', c_time: ['2022','04','13','09','00','00'], c_attackdelay:120, c_troop:troop3, c_target:(1304,667), c_repeat:-1, c_return_home: True};
     task_list.append(task1);
-    task_list.append(task2);
+    #task_list.append(task2);
     #task_list.append(task3);
     tasks_management(task_list);
     
