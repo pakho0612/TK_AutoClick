@@ -3,35 +3,9 @@ import datetime
 import pygetwindow
 import time
 import json
+from const import *
 #windows click
 # GUI to set troops
-
-
-#################### Internal constant
-c_process_name = '三國志';
-c_default_window_pos = (10,10);
-c_default_window_size = (1104,651);
-c_timeout = 5;#seconds
-c_forceattack_timeout = 2;
-c_verify_timeout = 2;
-c_delay = 0.25;#seconds
-debug = 1;
-
-c_mode_city = 'attack_city';
-c_mode_tile = 'attack_tile';
-c_mode_move = 'move';
-c_mode = 'mode';
-c_time = 'time';
-c_troop = 'troop';
-c_target = 'target';
-c_attackdelay = 'delay';
-c_repeat = 'repeat';
-c_return_home = 'return_home';
-
-img_location = './src/';
-usrdata_location = './usr/';
-tasks_file = 'tasks.json';
-c_json_task = 'Tasks';
 
 ##################### Source 
 map_button = img_location + 'map_button.png';
