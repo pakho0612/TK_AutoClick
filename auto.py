@@ -66,7 +66,7 @@ def debug_message(*args, **kwargs):
     if debug == 1:
         print("    " + " ".join(map(str,args)), **kwargs);
 #################### System Functions
-def WindowResizing(default_window_pos, default_window_size, process_name):
+def ActivateWindow(default_window_pos, default_window_size, process_name):
     # for later: may rescale cv image instead
     # 
     win_handle = pygetwindow.getWindowsWithTitle(process_name)[0];
@@ -77,7 +77,7 @@ def WindowResizing(default_window_pos, default_window_size, process_name):
 
 def Init():
     # Load constants from JSON
-    WindowResizing(c_default_window_pos, c_default_window_size, c_process_name);
+    ActivateWindow(c_default_window_pos, c_default_window_size, c_process_name);
 
 def InitTimer():
     print('Started Timeout timer');
@@ -325,6 +325,7 @@ class AllTasks:
                 # when time is due for the first task
                 # execute it 
                 if task.check_time() is True:
+                    ActivateWindow(c_default_window_pos, c_default_window_size, c_process_name);
                     task.task_handler();
                     print('Task ', task.mode, task.time, ' is finished.');
         except InvalidValueError as e:
