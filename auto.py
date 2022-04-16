@@ -4,30 +4,10 @@ import pygetwindow
 import time
 import json
 from const import *
+import GUI
 #windows click
 # GUI to set troops
 
-##################### Source 
-map_button = img_location + 'map_button.png';
-map_coordinate_box = img_location + 'map_coordinate_box.png';
-map_goto_button = img_location + 'map_goto_button.png';
-
-attack_city_button = img_location + 'attack_button.png';
-attack_city_confirm_button = img_location + 'attack_confirm_button.png';
-attack_tile_button = img_location + 'attack_tile_button.png';
-attack_tile_confirm_button = img_location + 'attack_tile_confirm_button.png';
-return_home_button = img_location + 'return_home_button.PNG';
-not_return_home_button = img_location + 'not_return_home_button.PNG';
-force_attack_button = img_location + 'force_attack_button.PNG';
-
-numbertimes_button = img_location + 'number_times.PNG';
-once_button = img_location + 'once.PNG';
-twice_button = img_location + 'twice.PNG';
-threetimes_button = img_location + 'three_times.PNG';
-numbertimes_button_list = {1:once_button, 2:twice_button, 3:threetimes_button};
-
-move_button = img_location + 'move_button.PNG';
-move_confirm_button = img_location + 'move_confirm_button.PNG';
 
 #################### Debug/Error Functions
 class TimeOutError(Exception):
@@ -51,7 +31,10 @@ def ActivateWindow(default_window_pos, default_window_size, process_name):
 
 def Init():
     # Load constants from JSON
-    ActivateWindow(c_default_window_pos, c_default_window_size, c_process_name);
+    print('Init..');
+    task_list = AllTasks();
+    #ActivateWindow(c_default_window_pos, c_default_window_size, c_process_name);
+    return task_list;
 
 def InitTimer():
     print('Started Timeout timer');
@@ -288,9 +271,18 @@ class AllTasks:
     def __init__(self):
         self.task_list = [];
         
-    def AddTask(self, newtask):
+    def AddTask(self, mode, time, troop, target, delay, repeat, return_home):
+        newtask = Task(mode, time, troop, target, delay, repeat, return_home);
         self.task_list.append(newtask);
-    
+        
+    def PrintTasks(self):
+         for task in self.task_list:
+            print('Remaining task. Mode:', task.mode, ' Time:',task.time, ' Troop:',task.troop, ' Target:',task.target, ' Delay:',task.delay, ' Repeat:',task.repeat, ' Return Home:',task.return_home);
+        
+    def RemoveTaskbyIndex(self, task_index):
+         self.task_list.remove(self.task_list[task_index]);
+         self.PrintTasks();
+            
     def tasks_management(self):
         try:
             while self.task_list:
@@ -309,8 +301,8 @@ class AllTasks:
             details = e.args[0];
             print(details['message']);
             
-def SetTasks(file):
-    task_list = AllTasks();
+def SetTasks_JSON(file):
+    alltasks = AllTasks();
     print('Loading Tasks');
     with open(file,'r') as file_object:  
         data = json.load(file_object);
@@ -318,14 +310,12 @@ def SetTasks(file):
         debug_message('Adding new task', task);
         task_time = [int(i) for i in task[c_time]];
         task_datetime = datetime.datetime(task_time[0], task_time[1], task_time[2], task_time[3], task_time[4], task_time[5]);
-        newtask = Task(task[c_mode], task_datetime, task[c_troop], task[c_target], task[c_attackdelay], task[c_repeat], task[c_return_home]);
-        task_list.AddTask(newtask);
-    return task_list;
+        alltasks.AddTask(task[c_mode], task_datetime, task[c_troop], task[c_target], task[c_attackdelay], task[c_repeat], task[c_return_home]);
+    return alltasks;
+
+alltasks = Init();
 
 def main():
-    Init();
-    task_list = SetTasks(usrdata_location + tasks_file);
-    task_list.tasks_management();
-    
+    alltasks = SetTasks_JSON(usrdata_location + tasks_file);
+    alltasks.tasks_management();
 
-main();
