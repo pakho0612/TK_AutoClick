@@ -40,12 +40,14 @@ class GUI(QtWidgets.QWidget):
         self.FindTroopsImg();
         for btn in self.TroopsBox.buttons():
             self.TroopsBox.removeButton(btn); ## Clear all existing buttons before recreate new ones
+            btn.deleteLater();
+            
         for troop in self.AllTroops: ##
             btn = QtWidgets.QPushButton(checkable = True);
             btn.setStyleSheet("checked{background-color: blue;}"); # set push button color when selected
             troop_img = QtGui.QPixmap(troop);
             print('Image size ', troop_img.width(), troop_img.height())
-            btn.resize(troop_img.width(), troop_img.height());
+            btn.setFixedSize(troop_img.width(), troop_img.height());
             btn.setStyleSheet("background-image : url(" + troop + ");");
             btn.clicked.connect(partial(self.TroopSelected, troop)); #partial() create a new with argument replace by a constant(troop in this case)
             self.hbox.addWidget(btn);
