@@ -14,6 +14,15 @@ class GUI(QtWidgets.QWidget):
         self.LoadTroopsButton.setText("Load Troops");
         self.LoadTroopsButton.clicked.connect(self.LoadTroops);
 
+        self.HomeLocationBox = QtWidgets.QLineEdit(self);
+        self.HomeLocation = [0,0];
+        self.HomeLocationBox.setPlaceholderText('Home Location ex: 123,456');
+        self.HomeLocationBox.setValidator(QtGui.QRegExpValidator(QtCore.QRegExp("[0-9]{1,4},[0-9]{1,4}")));
+        self.HomeLocationBox.editingFinished.connect(self.HomeLocationChanged);
+
+        self.ReloadTroopsButton = QtWidgets.QPushButton("Reload Troops", self);
+        self.ReloadTroopsButton.clicked.connect(self.ReloadTroopsImg);
+
         self.TaskTimeMenu = QtWidgets.QDateTimeEdit(self);
         self.TaskTimeMenu.setCalendarPopup(True); ## calendar pop up for date setting
         self.TaskTimeMenu.setDisplayFormat("yyyy-MM-dd hh:mm:ss ap");
@@ -72,6 +81,11 @@ class GUI(QtWidgets.QWidget):
         self.RunButton = QtWidgets.QPushButton('Run', self);
         self.RunButton.clicked.connect(self.RunClicked);
 
+        self.LoadTroopsHomeLocationLayout = QtWidgets.QHBoxLayout();        
+        self.LoadTroopsHomeLocationLayout.addWidget(self.LoadTroopsButton);
+        self.LoadTroopsHomeLocationLayout.addWidget(self.HomeLocationBox);
+        self.LoadTroopsHomeLocationLayout.addWidget(self.ReloadTroopsButton);
+
         self.ModeTargetTimeLayout = QtWidgets.QHBoxLayout();
         self.ModeTargetTimeLayout.addWidget(QtWidgets.QLabel("Mode: "));
         self.ModeTargetTimeLayout.addWidget(self.ModeButton);
@@ -85,7 +99,7 @@ class GUI(QtWidgets.QWidget):
         self.DelayRepeatReturnHomeLayout.addWidget(self.ReturnHomeBox);
         
         self.LeftHalfLayout = QtWidgets.QVBoxLayout();
-        self.LeftHalfLayout.addWidget(self.LoadTroopsButton);
+        self.LeftHalfLayout.addLayout(self.LoadTroopsHomeLocationLayout);
         self.LeftHalfLayout.addLayout(self.TroopsHboxlayout);
         self.LeftHalfLayout.addLayout(self.ModeTargetTimeLayout);
         self.LeftHalfLayout.addLayout(self.DelayRepeatReturnHomeLayout);
@@ -103,28 +117,32 @@ class GUI(QtWidgets.QWidget):
         self.setWindowTitle('TKAutoClick');
         self.show();
 
+    def ReloadTroopsImg(self):
+        auto.FindTroopsImg(self.HomeLocation);
+        self.LoadTroops();
+
     def LoadTroops(self):
         self.CurTroop = '';
-        self.AllTroops = [];
         print('wind size', self.width(), self.height());
 
         print('current button group', self.TroopsBox.buttons());
         # Find all troop from game and create button for each
-        self.FindTroopsImg();
         for btn in self.TroopsBox.buttons():
             self.TroopsBox.removeButton(btn); ## Clear all existing buttons before recreate new ones
             btn.deleteLater();
             
-        for troop in self.AllTroops: ##
-            btn = QtWidgets.QPushButton(checkable = True);
-            btn.setStyleSheet("checked{background-color: blue;}"); # set push button color when selected
+        for troop in c_troops: ##
             troop_img = QtGui.QPixmap(troop);
-            print('Image size ', troop_img.width(), troop_img.height())
-            btn.setFixedSize(troop_img.width(), troop_img.height());
-            btn.setStyleSheet("background-image : url(" + troop + ");");
-            btn.clicked.connect(partial(self.TroopSelected, troop)); #partial() create a new with argument replace by a constant(troop in this case)
-            self.TroopsHboxlayout.addWidget(btn);
-            self.TroopsBox.addButton(btn);
+            if troop_img.isNull() is False:
+                btn = QtWidgets.QPushButton(checkable = True);
+                btn.setStyleSheet("checked{background-color: blue;}"); # set push button color when selected
+                
+                print('Image size ', troop_img.width(), troop_img.height())
+                btn.setFixedSize(troop_img.width(), troop_img.height());
+                btn.setStyleSheet("background-image : url(" + troop + ");");
+                btn.clicked.connect(partial(self.TroopSelected, troop)); #partial() create a new with argument replace by a constant(troop in this case)
+                self.TroopsHboxlayout.addWidget(btn);
+                self.TroopsBox.addButton(btn);
         print('Loading Troops');
 
     def TroopSelected(self, troop):
@@ -150,6 +168,10 @@ class GUI(QtWidgets.QWidget):
     def TargetChanged(self):
         self.target = self.TargetBox.text().split(',');
         print('Target Changed to : ', self.target);
+
+    def HomeLocationChanged(self):
+        self.HomeLocation = self.HomeLocationBox.text().split(',');
+        print('Home Location Changed to : ', self.HomeLocation);
 
     def ReturnHomeChanged(self):
         self.return_home = self.ReturnHomeBox.isChecked();
@@ -178,19 +200,6 @@ class GUI(QtWidgets.QWidget):
 
     def RunClicked(self):
         auto.alltasks.tasks_management();
-
-    def FindTroopsImg(self):
-        # this function find and capture img of troops for pyautogui to locate
-        for troop_img_path in c_troops:
-            #capture 5 available troops at specific location
-            #if the capture image is invalid(no troop)
-            if False:
-                print('Invalid troop');
-            else:
-                self.AllTroops.append(troop_img_path);
-                print('Found a troop');
-            
-        print('Found and saved all Images');
 
 def GUI_Init():
     app = QtWidgets.QApplication(sys.argv);# contain the GUI application object
