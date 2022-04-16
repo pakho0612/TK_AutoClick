@@ -22,11 +22,36 @@ class GUI(QtWidgets.QWidget):
         self.TaskTime = self.TaskTime.toPyDateTime();
         self.TaskTimeMenu.dateTimeChanged.connect(self.TaskTimeChanged);
 
-        #self.setStyleSheet("QPushButton::checked{ background-color:blue; border: none; }")
-        #button.setStyleSheet("background-image : url(image.png);")
         self.hbox = QtWidgets.QHBoxLayout(self);
         self.TroopsBox = QtWidgets.QButtonGroup(self);
-            
+
+        self.ModeButton = QtWidgets.QComboBox(self);
+        self.mode = c_mode_city; ## Default Mode Value
+        self.ModeButton.addItem("攻城", QtCore.QVariant(c_mode_city));
+        self.ModeButton.addItem("佔地", QtCore.QVariant(c_mode_tile));
+        self.ModeButton.addItem("行軍", QtCore.QVariant(c_mode_move));
+        self.ModeButton.currentIndexChanged.connect(self.ModeChanged);
+
+        self.RepeatButton = QtWidgets.QComboBox(self);
+        self.repeat = -1; ## Default Mode Value
+        self.RepeatButton.addItem("不限次", QtCore.QVariant(-1));
+        self.RepeatButton.addItem("1次", QtCore.QVariant(1));
+        self.RepeatButton.addItem("2次", QtCore.QVariant(2));
+        self.RepeatButton.addItem("3次", QtCore.QVariant(3));
+        self.RepeatButton.currentIndexChanged.connect(self.RepeatChanged);
+
+        self.DelayBox = QtWidgets.QLineEdit(self);
+        self.delay = 0;
+        self.DelayBox.setPlaceholderText('0 seconds');
+        self.DelayBox.setValidator(QtGui.QIntValidator());
+        self.DelayBox.editingFinished.connect(self.DelayChanged);
+
+        self.TargetBox = QtWidgets.QLineEdit(self);
+        self.target = [0,0];
+        self.TargetBox.setPlaceholderText('ex: 123,456');
+        self.TargetBox.setValidator(QtGui.QRegExpValidator(QtCore.QRegExp("[0-9]{1,},[0-9]{1,}")));
+        self.TargetBox.editingFinished.connect(self.TargetChanged);
+        
         self.setGeometry(400,400,300,200); ##GUI window location and size
         self.setWindowTitle('TKAutoClick');
         self.show();
@@ -61,6 +86,22 @@ class GUI(QtWidgets.QWidget):
     def TaskTimeChanged(self):
         self.TaskTime = self.TaskTimeMenu.dateTime().toPyDateTime();
         print('Task Time has changed to :', self.TaskTime);
+
+    def ModeChanged(self):
+        self.mode = self.ModeButton.currentData();
+        print('Mode Changed to : ', self.mode);
+
+    def RepeatChanged(self):
+        self.repeat = self.RepeatButton.currentData();
+        print('Repeat Changed to : ', self.repeat);
+
+    def DelayChanged(self):
+        self.delay = int(self.DelayBox.text());
+        print('Delay Changed to : ', self.delay, ' seconds');
+
+    def TargetChanged(self):
+        self.target = self.TargetBox.text().split(',');
+        print('Target Changed to : ', self.target);
 
     def FindTroopsImg(self):
         # this function find and capture img of troops for pyautogui to locate
