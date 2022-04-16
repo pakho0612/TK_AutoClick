@@ -5,6 +5,7 @@ import time
 import json
 from const import *
 import GUI
+import os
 #windows click
 # GUI to set troops
 
@@ -33,7 +34,7 @@ def Init():
     # Load constants from JSON
     print('Init..');
     task_list = AllTasks();
-    #ActivateWindow(c_default_window_pos, c_default_window_size, c_process_name);
+    ActivateWindow(c_default_window_pos, c_default_window_size, c_process_name);
     return task_list;
 
 def InitTimer():
@@ -110,8 +111,13 @@ def clean_textbox():
 
 def write_number(number):
     pyautogui.write(str(number));
-        
-#2
+
+def GoHomeTown(location):
+    ActivateWindow(c_default_window_pos, c_default_window_size, c_process_name);
+    Navigate_map(location);
+    if ClickOnButton(enter_home_button) is False:
+        raise TimeOutError({'message':'Finding enter_home Error: TimedOut'});
+
 def Navigate_map(location):
     #open map
     print('Finding map button');
@@ -139,6 +145,31 @@ def Navigate_map(location):
     if ClickOnButton(map_goto_button) is False:
         raise TimeOutError({'message':'Finding goto Error: TimedOut'});
 
+def FindTroopsImg(HomeLocation):
+        try:
+            GoHomeTown(HomeLocation);
+            time.sleep(1);
+            # this function find and capture img of troops for pyautogui to locate
+            for i in range(len(c_troops)):
+                #capture 5 available troops at specific location
+                #if the capture image is invalid(no troop)
+                troop_img_path = c_troops[i];
+                troop_bbox = c_troops_bbox[i];
+                if os.path.isfile(troop_img_path):
+                    print('Removing existing troop image...');
+                    os.remove(troop_img_path);
+                img = pyautogui.screenshot(region=troop_bbox);
+                isinvalid = pyautogui.locate(c_invalid_troop, img, grayscale=True, confidence = 0.9);
+                if isinvalid is not None:
+                    print('Invalid troop not added', troop_img_path);
+                else:
+                    print('saving image to ', troop_img_path);
+                    img.save(troop_img_path);
+        except TimeOutError as e:
+            details = e.args[0];
+            print(details['message']);
+            return;
+    
 def SetNumberTimes(number_of_times):
     if number_of_times == -1:
         print('Selected nonstop attacking')
