@@ -51,8 +51,6 @@ def DelayAndTimeOut(start_time):
 
 #################### User Functions    
 def locate(picture, conf = 0.9):
-    #pyautogui.locateOnScreen('someButton.png', region=(0,0, 300, 400))
-    # return None
     try:
         search_region = (c_default_window_pos[0],c_default_window_pos[1], c_default_window_size[0], c_default_window_size[1]);
         button_location = pyautogui.locateOnScreen(picture, confidence = conf, grayscale = True, region = search_region);
@@ -62,18 +60,15 @@ def locate(picture, conf = 0.9):
         debug_message("Unexpected error in locate function");
 
 def locateCoordinateBox(picture, conf = 0.95):
-    #pyautogui.locateOnScreen('someButton.png', region=(0,0, 300, 400))
-    # return None
-    #try:
+    try:
         #Searching only at bottom right quarter
         search_region = (c_default_window_pos[0]+round(c_default_window_size[0]/2),c_default_window_pos[1]+round(c_default_window_size[1]/2), c_default_window_size[0], c_default_window_size[1]);
-        #search_region = (c_default_window_pos[0],c_default_window_pos[1], c_default_window_size[0], c_default_window_size[1]);
         button_location = pyautogui.locateAllOnScreen(picture, confidence = conf, region = search_region);
         debug_message("@locateCoordinateBox bbox ", button_location);
         return button_location;
-    #except :
-        #debug_message("Unexpected error in locateCoordinateBox function");
-        #return False;
+    except :
+        debug_message("Unexpected error in locateCoordinateBox function");
+        return False;
         
 def Button_exists(button_image):
     start_time = InitTimer();
@@ -131,9 +126,7 @@ def Navigate_map(location):
     start_time = InitTimer();
     while True:
         coordinate_list = list(locateCoordinateBox(map_coordinate_box));
-        print('enter', str(len(coordinate_list)))
         if len(coordinate_list) ==2: ## x and y coordinate box found
-            print('exit');
             break;
         if DelayAndTimeOut(start_time) is True:
             raise TimeOutError({'message':'Locating coordinate buttons Error: TimedOut'});
@@ -297,7 +290,8 @@ class Task:
             if start_time < now:
                 print('Start Script : ', now);
                 return True;
-            time.sleep(c_delay); # Polling bad, calculate time diff and sleep until then
+            print('waiting...');
+            time.sleep((start_time-now).total_seconds()); 
 
 #################
         
@@ -307,15 +301,21 @@ class AllTasks:
         
     def AddTask(self, mode, time, troop, target, delay, repeat, return_home):
         newtask = Task(mode, time, troop, target, delay, repeat, return_home);
+        #self.task_list.append(newtask);
+        time_epsilon = datetime.timedelta(seconds = 0.001);
+        newtask_time = time + datetime.timedelta(seconds = delay);
+        for i in range(len(self.task_list)):
+            thistask_time = self.task_list[i].time + datetime.timedelta(seconds = self.task_list[i].delay);
+            if newtask_time >= thistask_time - time_epsilon and newtask_time <= thistask_time + time_epsilon:
+                if False:
+                    self.task_list.insert(i, newtask);## this section for sorting by troop name
+                    print('task inserted at location ', i)
+                    return;
+            elif newtask_time < thistask_time:
+                self.task_list.insert(i, newtask);
+                print('task inserted at location ', i)
+                return;
         self.task_list.append(newtask);
-        #newtask_time = time + datetime.timedelta(seconds = delay);
-        # for i in range(len(self.task_list)):
-            # thistask_time = self.task_list[i].time + datetime.timedelta(seconds = self.task_list[i].delay);
-            # if newtask_time == thistask_time:
-                # if  
-                    # self.task_list.insert(i, newtask);
-            # elif newtask_time < thistask_time:
-                # self.task_list.insert(i, newtask);
         
     def PrintTasks(self):
          for task in self.task_list:

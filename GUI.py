@@ -127,7 +127,6 @@ class GUI(QtWidgets.QWidget):
         self.CurTroop = '';
         print('wind size', self.width(), self.height());
 
-        print('current button group', self.TroopsBox.buttons());
         # Find all troop from game and create button for each
         for btn in self.TroopsBox.buttons():
             self.TroopsBox.removeButton(btn); ## Clear all existing buttons before recreate new ones
@@ -139,7 +138,6 @@ class GUI(QtWidgets.QWidget):
                 btn = QtWidgets.QPushButton(checkable = True);
                 btn.setStyleSheet("checked{background-color: blue;}"); # set push button color when selected
                 
-                print('Image size ', troop_img.width(), troop_img.height())
                 btn.setFixedSize(troop_img.width(), troop_img.height());
                 btn.setStyleSheet("background-image : url(" + troop + ");");
                 btn.clicked.connect(partial(self.TroopSelected, troop)); #partial() create a new with argument replace by a constant(troop in this case)
@@ -199,15 +197,7 @@ class GUI(QtWidgets.QWidget):
         auto.debug_message('Added new task', self.mode, self.TaskTime, self.CurTroop, self.target, self.delay, self.repeat, self.return_home);
         auto.alltasks.AddTask(self.mode, self.TaskTime, self.CurTroop, self.target, self.delay, self.repeat, self.return_home);
 
-        numrow = self.AllTasksTable.rowCount();
-        self.AllTasksTable.insertRow(numrow);
-        self.AllTasksTable.setItem(numrow, 0, QtWidgets.QTableWidgetItem(self.mode));
-        self.AllTasksTable.setItem(numrow, 1, QtWidgets.QTableWidgetItem(self.TaskTime.strftime("%m/%d/%Y %H:%M:%S")));
-        self.AllTasksTable.setItem(numrow, 2, QtWidgets.QTableWidgetItem(self.CurTroop));
-        self.AllTasksTable.setItem(numrow, 3, QtWidgets.QTableWidgetItem(str(self.target[0])+','+str(self.target[1])));
-        self.AllTasksTable.setItem(numrow, 4, QtWidgets.QTableWidgetItem(str(self.delay)));
-        self.AllTasksTable.setItem(numrow, 5, QtWidgets.QTableWidgetItem(str(self.repeat)));
-        self.AllTasksTable.setItem(numrow, 6, QtWidgets.QTableWidgetItem(str(self.return_home)));
+        self.RefreshTask();
 
     def RemoveTaskClicked(self):
         rowToRemove = self.AllTasksTable.currentRow();
