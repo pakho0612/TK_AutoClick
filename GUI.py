@@ -3,6 +3,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from const import *
 from functools import partial
 import auto
+import json
 
 class GUI(QtWidgets.QWidget):
     def __init__(self):
@@ -15,8 +16,9 @@ class GUI(QtWidgets.QWidget):
         self.LoadTroopsButton.clicked.connect(self.LoadTroops);
 
         self.HomeLocationBox = QtWidgets.QLineEdit(self);
-        self.HomeLocation = [0,0];
-        self.HomeLocationBox.setPlaceholderText('Home Location ex: 123,456');
+        print('home location on startup :', self.ReadJSON(c_json_homelocation));
+        self.HomeLocation = self.ReadJSON(c_json_homelocation);
+        self.HomeLocationBox.setPlaceholderText('Current Home Location :' + str(self.HomeLocation[0]) + ',' + str(self.HomeLocation[1]));
         self.HomeLocationBox.setValidator(QtGui.QRegExpValidator(QtCore.QRegExp("[0-9]{1,4},[0-9]{1,4}")));
         self.HomeLocationBox.editingFinished.connect(self.HomeLocationChanged);
 
@@ -143,10 +145,24 @@ class GUI(QtWidgets.QWidget):
                 btn.clicked.connect(partial(self.TroopSelected, troop)); #partial() create a new with argument replace by a constant(troop in this case)
                 self.TroopsHboxlayout.addWidget(btn);
                 self.TroopsBox.addButton(btn);
-        print('Loading Troops');
+        print('Finish Loading Troops ...');
+        
+    def ReadJSON(self, key):
+        with open(json_file_location,'r') as fileobject:
+            data = json.load(fileobject);
+        return data[key];
+    
+    def UpdateHomeLocationJSON(self, location):
+        with open(json_file_location, 'r') as fileobject:
+            data = json.load(fileobject);
+        data[c_json_homelocation] = location;
+        
+        with open(json_file_location, 'w') as fileobject:
+            json.dump(data, fileobject, indent=1);
+        print('Updated Home location in file');
 
     def TroopSelected(self, troop):
-        self.CurTroop = troop;
+        self.CurTroop = troop;        
         print('Troop selected : ', troop);
 
     def TaskTimeChanged(self):
@@ -170,7 +186,8 @@ class GUI(QtWidgets.QWidget):
         print('Target Changed to : ', self.target);
 
     def HomeLocationChanged(self):
-        self.HomeLocation = self.HomeLocationBox.text().split(',');
+        self.HomeLocation = [ int(num) for num in self.HomeLocationBox.text().split(',')];
+        self.UpdateHomeLocationJSON(self.HomeLocation);
         print('Home Location Changed to : ', self.HomeLocation);
 
     def ReturnHomeChanged(self):
@@ -197,9 +214,24 @@ class GUI(QtWidgets.QWidget):
         self.AllTasksTable.removeRow(rowToRemove);
         print('Removing Task : ', rowToRemove);
         auto.alltasks.RemoveTaskbyIndex(rowToRemove);
+        
+    def RefreshTask(self):
+        self.AllTasksTable.setRowCount(0);
+        for task in auto.alltasks.task_list:
+            numrow = self.AllTasksTable.rowCount();
+            self.AllTasksTable.insertRow(numrow);
+            self.AllTasksTable.setItem(numrow, 0, QtWidgets.QTableWidgetItem(task.mode));
+            self.AllTasksTable.setItem(numrow, 1, QtWidgets.QTableWidgetItem(task.time.strftime("%m/%d/%Y %H:%M:%S")));
+            self.AllTasksTable.setItem(numrow, 2, QtWidgets.QTableWidgetItem(task.troop));
+            self.AllTasksTable.setItem(numrow, 3, QtWidgets.QTableWidgetItem(str(task.target[0])+','+str(task.target[1])));
+            self.AllTasksTable.setItem(numrow, 4, QtWidgets.QTableWidgetItem(str(task.delay)));
+            self.AllTasksTable.setItem(numrow, 5, QtWidgets.QTableWidgetItem(str(task.repeat)));
+            self.AllTasksTable.setItem(numrow, 6, QtWidgets.QTableWidgetItem(str(task.return_home)));
 
     def RunClicked(self):
         auto.alltasks.tasks_management();
+        self.RefreshTask();
+        print('Finish All Tasks');
 
 def GUI_Init():
     app = QtWidgets.QApplication(sys.argv);# contain the GUI application object

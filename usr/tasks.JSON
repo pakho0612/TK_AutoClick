@@ -1,31 +1,65 @@
 {
-    "Tasks":[
-        {
-            "mode": "attack_city", 
-            "time": ["2022","04","14","21","00","00"], 
-            "troop": "./usr/troop3.PNG", 
-            "target": [1396,492],
-            "delay": 10, 
-            "repeat": -1, 
-            "return_home": false
-        },
-        {
-            "mode": "attack_city", 
-            "time": ["2022","04","14","21","00","00"], 
-            "troop": "./usr/troop2.PNG", 
-            "target": [1396,492],
-            "delay": 10, 
-            "repeat": -1, 
-            "return_home": false
-        },
-        {
-            "mode": "attack_city", 
-            "time": ["2022","04","14","21","00","00"], 
-            "troop": "./usr/troop4.PNG", 
-            "target": [1396,492],
-            "delay": 10, 
-            "repeat": -1, 
-            "return_home": false
-        }
-    ]
+ "Tasks": [
+  {
+   "mode": "attack_city",
+   "time": [
+    "2022",
+    "04",
+    "14",
+    "21",
+    "00",
+    "00"
+   ],
+   "troop": "./usr/troop3.PNG",
+   "target": [
+    1396,
+    492
+   ],
+   "delay": 10,
+   "repeat": -1,
+   "return_home": false
+  },
+  {
+   "mode": "attack_city",
+   "time": [
+    "2022",
+    "04",
+    "14",
+    "21",
+    "00",
+    "00"
+   ],
+   "troop": "./usr/troop2.PNG",
+   "target": [
+    1396,
+    492
+   ],
+   "delay": 10,
+   "repeat": -1,
+   "return_home": false
+  },
+  {
+   "mode": "attack_city",
+   "time": [
+    "2022",
+    "04",
+    "14",
+    "21",
+    "00",
+    "00"
+   ],
+   "troop": "./usr/troop4.PNG",
+   "target": [
+    1396,
+    492
+   ],
+   "delay": 10,
+   "repeat": -1,
+   "return_home": false
+  }
+ ],
+ "Home_Location": [
+  986,
+  704
+ ]
 }
