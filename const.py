@@ -23,8 +23,10 @@ c_return_home = 'return_home';
 
 img_location = './src/';
 usrdata_location = './usr/';
-tasks_file = 'tasks.json';
+json_file = 'tasks.json';
+json_file_location = usrdata_location + json_file;
 c_json_task = 'Tasks';
+c_json_homelocation = 'Home_Location';
 c_troop1 = usrdata_location + 'troop1.PNG';
 c_troop2 = usrdata_location + 'troop2.PNG';
 c_troop3 = usrdata_location + 'troop3.PNG';

@@ -61,19 +61,19 @@ def locate(picture, conf = 0.9):
     except :
         debug_message("Unexpected error in locate function");
 
-def locateCoordinateBox(picture, conf = 0.87):
+def locateCoordinateBox(picture, conf = 0.95):
     #pyautogui.locateOnScreen('someButton.png', region=(0,0, 300, 400))
     # return None
-    try:
+    #try:
         #Searching only at bottom right quarter
         search_region = (c_default_window_pos[0]+round(c_default_window_size[0]/2),c_default_window_pos[1]+round(c_default_window_size[1]/2), c_default_window_size[0], c_default_window_size[1]);
         #search_region = (c_default_window_pos[0],c_default_window_pos[1], c_default_window_size[0], c_default_window_size[1]);
         button_location = pyautogui.locateAllOnScreen(picture, confidence = conf, region = search_region);
         debug_message("@locateCoordinateBox bbox ", button_location);
         return button_location;
-    except :
-        debug_message("Unexpected error in locateCoordinateBox function");
-        return False;
+    #except :
+        #debug_message("Unexpected error in locateCoordinateBox function");
+        #return False;
         
 def Button_exists(button_image):
     start_time = InitTimer();
@@ -94,8 +94,10 @@ def ClickOnButton(button_image):
     pyautogui.click(button_x, button_y)
     return True;
         
-def click(button_bbox):
+def click(button_bbox, x_offset = 0, y_offset = 0):
     button_x, button_y = pyautogui.center(button_bbox);
+    button_x = button_x + x_offset;
+    button_y = button_y + y_offset;
     debug_message("button click on ",button_x, button_y)
     pyautogui.click(button_x, button_y)
 
@@ -129,14 +131,15 @@ def Navigate_map(location):
     start_time = InitTimer();
     while True:
         coordinate_list = list(locateCoordinateBox(map_coordinate_box));
+        print('enter', str(len(coordinate_list)))
         if len(coordinate_list) ==2: ## x and y coordinate box found
+            print('exit');
             break;
         if DelayAndTimeOut(start_time) is True:
             raise TimeOutError({'message':'Locating coordinate buttons Error: TimedOut'});
-            
     print("Entering Coordinate", (location[0],location[1]));
     for i in range(2):
-        click(coordinate_list[i]);
+        click(coordinate_list[i], 30, 0);## offset to the actual coordinate field ,since the image used is the icon only
         clean_textbox();
         pyautogui.write(str(location[i]));
         
@@ -305,6 +308,14 @@ class AllTasks:
     def AddTask(self, mode, time, troop, target, delay, repeat, return_home):
         newtask = Task(mode, time, troop, target, delay, repeat, return_home);
         self.task_list.append(newtask);
+        #newtask_time = time + datetime.timedelta(seconds = delay);
+        # for i in range(len(self.task_list)):
+            # thistask_time = self.task_list[i].time + datetime.timedelta(seconds = self.task_list[i].delay);
+            # if newtask_time == thistask_time:
+                # if  
+                    # self.task_list.insert(i, newtask);
+            # elif newtask_time < thistask_time:
+                # self.task_list.insert(i, newtask);
         
     def PrintTasks(self):
          for task in self.task_list:
@@ -347,6 +358,6 @@ def SetTasks_JSON(file):
 alltasks = Init();
 
 def main():
-    alltasks = SetTasks_JSON(usrdata_location + tasks_file);
+    alltasks = SetTasks_JSON(json_file_location);
     alltasks.tasks_management();
 
