@@ -8,7 +8,7 @@ c_timeout = 5;#seconds
 c_forceattack_timeout = 2;
 c_verify_timeout = 2;
 c_delay = 0.25;#seconds
-debug = 1;
+debug = 0;
 
 c_mode_city = 'attack_city';
 c_mode_tile = 'attack_tile';
